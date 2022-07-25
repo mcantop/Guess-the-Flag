@@ -7,6 +7,32 @@
 
 import SwiftUI
 
+struct FlagImage: View {
+    var countries: [String]
+    var number: Int
+    
+    var body: some View {
+        Image(countries[number])
+            .renderingMode(.original)
+            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .shadow(radius: 5)
+    }
+}
+
+struct LargeBlueFont: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.system(size: 32))
+            .foregroundStyle(.blue)
+    }
+}
+
+extension View {
+    func largeBlueFont() -> some View {
+        modifier(LargeBlueFont())
+    }
+}
+
 struct ContentView: View {
     @State private var isGameFinished = false
     @State private var showingScore = false
@@ -48,10 +74,7 @@ struct ContentView: View {
                         Button {
                             flagTapped(number)
                         } label: {
-                            Image(countries[number])
-                                .renderingMode(.original)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
-                                .shadow(radius: 5)
+                            FlagImage(countries: countries, number: number)
                         }
                     }
                 }
@@ -62,12 +85,13 @@ struct ContentView: View {
                 
                 Spacer()
 
-                Text("Question \(questionNumber)/8")
-                    .foregroundColor(.white)
-                    .font(.subheadline.weight(.heavy))
-                Text("Score: \(userScore)")
-                    .foregroundColor(.white)
-                    .font(.title.bold())
+                VStack {
+                    Text("Question \(questionNumber)/8")
+                        .font(.subheadline.weight(.heavy))
+                    Text("Score: \(userScore)")
+                }
+                .foregroundColor(.white)
+                .font(.title.bold())
                 
                 Spacer()
                 
@@ -82,20 +106,17 @@ struct ContentView: View {
         .alert("Game finished", isPresented: $isGameFinished) {
             Button("Restart", action: finishGame)
         } message: {
-            Text("You ended with \(userScore) score.")
+            userScore == 8 ? Text("Pefect! You got the maximum score") : Text("You ended with \(userScore) score.")
         }
     }
     
     func flagTapped(_ number: Int) {
-        scoreTitle = {
-            number == correctAnswer ? "Correct!" : "Wrong, it's \(countries[number])."
-        }()
+        scoreTitle = { number == correctAnswer ? "Correct!" : "Wrong, it's \(countries[number])." }()
         
-        if questionNumber < 8 {
-                userScore = {
-                number == correctAnswer ? userScore + 1 : userScore - 1
-            }()
+        if questionNumber != 8 {
+                userScore = { number == correctAnswer ? userScore + 1 : userScore - 1 }()
         } else {
+            if userScore == 7 { userScore += 1}
             isGameFinished = true
             showingScore = false
             return
